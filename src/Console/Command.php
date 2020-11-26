@@ -23,7 +23,7 @@ abstract class Command
         $this->arguments[$name] = '';
     }
 
-    public function getArgument(string $name)
+    protected function getArgument(string $name)
     {
         return $this->arguments[$name];
     }

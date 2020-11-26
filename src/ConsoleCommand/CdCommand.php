@@ -8,6 +8,7 @@ namespace App\ConsoleCommand;
 use App\Console\Command;
 use App\IO\Input;
 use App\IO\Output;
+use App\VirtualFileSystem\FileSystem;
 
 include "folder_view.php";
 
@@ -15,36 +16,12 @@ class CdCommand extends Command
 {
     protected string $name = 'cd';
 
-    private array $current;
+    private FileSystem $fileSystem;
 
-    private array $path;
-
-    private array $folder = [
-        'name' => 'Folder1',
-        'contents' => [
-            [
-                'name' => 'Sub1'
-            ],
-            'Sub2' => [
-                'name' => 'Sub2',
-                'contents' => [
-                    [
-                        'name' => 'Sub21'
-                    ],
-                    [
-                        'name' => 'Sub22',
-                        'contents' => []
-                    ],
-                    [
-                        'name' => 'Sub23'
-                    ]
-                ]
-            ],
-            [
-                'name' => 'Sub3'
-            ]
-        ]
-    ];
+    public function __construct(FileSystem $fileSystem)
+    {
+        $this->fileSystem = $fileSystem;
+    }
 
     public function execute(Input $input, Output $output): int
     {
