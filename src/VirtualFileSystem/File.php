@@ -8,9 +8,13 @@ class File
 {
     private string $name;
 
-    private string $uri;
+    private ?string $uri;
 
     private Directory $containedAt;
+
+    private string $path;
+
+    private string $contents = '';
 
     public function __construct(string $name, string $uri = null)
     {
@@ -23,7 +27,7 @@ class File
         return $this->name;
     }
 
-    public function getUri(): string
+    public function getUri(): ?string
     {
         return $this->uri;
     }
@@ -36,5 +40,25 @@ class File
     public function getContainedAt(): Directory
     {
         return $this->containedAt;
+    }
+
+    public function setPath(string $path): void
+    {
+        $this->path = $path;
+    }
+
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    public function getContents(): string
+    {
+        return $this->contents;
+    }
+
+    public function setContents(string $contents): void
+    {
+        $this->contents = $contents;
     }
 }

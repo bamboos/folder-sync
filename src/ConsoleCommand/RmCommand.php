@@ -10,31 +10,37 @@ use App\IO\Input;
 use App\IO\Output;
 use App\View\DirContentsView;
 use App\VirtualFileSystem\FileSystem;
+use App\VirtualFileSystem\Persistence;
 
-class CdCommand extends Command
+class RmCommand extends Command
 {
-    protected string $name = 'cd';
+    protected string $name = 'rm';
 
     private FileSystem $fileSystem;
 
     private DirContentsView $view;
 
+    private Persistence $persistence;
+
     public function __construct(
         FileSystem $fileSystem,
-        DirContentsView $view
+        DirContentsView $view,
+        Persistence $persistence
     ) {
         $this->fileSystem = $fileSystem;
         $this->view = $view;
 
         parent::__construct();
+        $this->persistence = $persistence;
     }
 
     public function execute(Input $input, Output $output): int
     {
-        $dir = $this->getArgument('dir');
-
-        if ($dir) {
-            $this->fileSystem->changeDir($dir);
+        $file = $this->getArgument('file');
+        
+        if ($file) {
+            $this->fileSystem->rmFile($file);
+            $this->persistence->store($this->fileSystem);
         }
 
         $this->view->display($this->fileSystem);
@@ -44,6 +50,6 @@ class CdCommand extends Command
 
     protected function configure(): void
     {
-        $this->setArgument('dir');
+        $this->setArgument('file');
     }
 }

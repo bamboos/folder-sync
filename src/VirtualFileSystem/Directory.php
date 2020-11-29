@@ -6,7 +6,7 @@ namespace App\VirtualFileSystem;
 
 class Directory extends File
 {
-    private array $files;
+    private array $files = [];
 
     public function __construct(string $name)
     {
@@ -15,7 +15,7 @@ class Directory extends File
 
     public function appendFile(File $file)
     {
-        $file->getContainedAt($this);
+        $file->setContainedAt($this);
         $this->files[$file->getName()] = $file;
     }
 

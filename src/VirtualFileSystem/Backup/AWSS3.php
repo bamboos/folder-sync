@@ -4,21 +4,26 @@ declare(strict_types = 1);
 
 namespace App\VirtualFileSystem\Backup;
 
-use App\Service\AWSS3Connector;
+use App\Service\AWS\AWSConnector;
 use App\VirtualFileSystem\Backup;
 use App\VirtualFileSystem\FileSystem;
 
 class AWSS3 implements Backup
 {
-    private AWSS3Connector $connector;
+    private AWSConnector $connector;
 
-    public function __construct(AWSS3Connector $connector)
+    public function __construct(AWSConnector $connector)
     {
         $this->connector = $connector;
     }
 
     public function store(FileSystem $fileSystem): void
     {
-        $this->connector;
+        $folder = 'vfs_backup_' . date('Y-m-d_H-i-s');
+        $this->connector->putObject("{$folder}/", '');
+
+        foreach ($fileSystem->traverse() as $file) {
+            $this->connector->putObject($folder . $file->getPath(), $file->getContents());
+        }
     }
 }

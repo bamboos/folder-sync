@@ -2,12 +2,27 @@
 
 namespace App;
 
+use App\Console\CommandRunner;
+use App\ConsoleCommand\AddFileCommand;
+use App\ConsoleCommand\BackupCommand;
 use App\ConsoleCommand\CdCommand;
+use App\ConsoleCommand\HelpCommand;
 use App\ConsoleCommand\ManageCommand;
-use App\Service\AWSS3Connector;
+use App\ConsoleCommand\MkDirCommand;
+use App\ConsoleCommand\RmCommand;
+use App\Http\Client;
+use App\Service\AWS\AWSConnector;
+use App\Service\AWS\Signature;
 use App\Container\Container;
+use App\Service\FileManager;
+use App\View\DirContentsView;
 use App\VirtualFileSystem\Backup;
 use App\VirtualFileSystem\Backup\AWSS3;
+use App\VirtualFileSystem\FileContent;
+use App\VirtualFileSystem\FileSystem;
+use App\VirtualFileSystem\Persistence;
+
+/** @var array $config */
 
 $container = new Container();
 
@@ -27,14 +42,130 @@ $container->set(
 
 $container->set(
     ManageCommand::class,
+    null, [
+        Persistence::class,
+        FileSystem::class
+    ],
+    'command'
+);
+
+$container->set(
+    DirContentsView::class
+);
+
+$container->set(
+    FileSystem::class,
+    null, [
+        FileContent::class
+    ]
+);
+
+$container->set(
+    CdCommand::class,
+    null, [
+        FileSystem::class,
+        DirContentsView::class
+    ],
+    'command'
+);
+
+$container->set(
+    MkDirCommand::class,
+    null,[
+        FileSystem::class,
+        DirContentsView::class,
+        Persistence::class
+    ],
+    'command'
+);
+
+$container->set(
+    FileManager::class
+);
+
+$container->set(
+    Persistence::class,
+    Persistence\File::class, [
+        FileManager::class,
+        'data/file_system.data'
+    ]
+);
+
+$container->set(
+    FileContent::class,
+    FileContent\Local::class, [
+        FileManager::class
+    ]
+);
+
+$container->set(
+    AddFileCommand::class,
+    null,[
+    FileSystem::class,
+    DirContentsView::class,
+    Persistence::class
+],
+    'command'
+);
+
+$container->set(
+    RmCommand::class,
+    null,[
+    FileSystem::class,
+    DirContentsView::class,
+    Persistence::class
+],
+    'command'
+);
+
+$container->set(
+    HelpCommand::class,
     null,
     [],
     'command'
 );
 
 $container->set(
-    CdCommand::class,
-    null,
-    [],
+    Signature::class,
+    Signature\SignatureV4::class, [
+        $config['aws']['connector']['signature']
+    ]
+);
+
+$container->set(
+    Client::class,
+    Client\Curl::class
+);
+
+$container->set(
+    AWSConnector::class,
+    null, [
+        $config['aws']['connector'],
+        Signature::class,
+        Client::class
+    ]
+);
+
+$container->set(
+    Backup::class,
+    AWSS3::class, [
+        AWSConnector::class
+    ]
+);
+
+$container->set(
+    BackupCommand::class,
+    null, [
+        Persistence::class,
+        FileSystem::class,
+        Backup::class
+    ],
     'command'
+);
+
+$container->set(
+    CommandRunner::class,
+    null, [
+        $container->getTagged('command')
+    ]
 );

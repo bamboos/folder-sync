@@ -2,48 +2,49 @@
 
 declare(strict_types = 1);
 
-
 namespace App\ConsoleCommand;
 
 use App\Console\Command;
 use App\IO\Input;
 use App\IO\Output;
-use App\View\DirContentsView;
+use App\VirtualFileSystem\Backup;
 use App\VirtualFileSystem\FileSystem;
+use App\VirtualFileSystem\Persistence;
 
-class CdCommand extends Command
+class BackupCommand extends Command
 {
-    protected string $name = 'cd';
+    protected string $name = 'backup';
+
+    private Persistence $persistence;
 
     private FileSystem $fileSystem;
 
-    private DirContentsView $view;
+    private Backup $backup;
 
     public function __construct(
+        Persistence $persistence,
         FileSystem $fileSystem,
-        DirContentsView $view
+        Backup $backup
     ) {
+        $this->persistence = $persistence;
         $this->fileSystem = $fileSystem;
-        $this->view = $view;
 
         parent::__construct();
+        $this->backup = $backup;
     }
 
     public function execute(Input $input, Output $output): int
     {
-        $dir = $this->getArgument('dir');
-
-        if ($dir) {
-            $this->fileSystem->changeDir($dir);
+        if ($root = $this->persistence->load()) {
+            $this->fileSystem->setRoot($root);
+            $this->backup->store($this->fileSystem);
         }
-
-        $this->view->display($this->fileSystem);
 
         return 0;
     }
 
     protected function configure(): void
     {
-        $this->setArgument('dir');
+
     }
 }

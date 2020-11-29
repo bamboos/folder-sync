@@ -1,2 +1,6 @@
 .idea
 .ddev
+vendor
+config/config.php
+data
+!data/.gitkeep

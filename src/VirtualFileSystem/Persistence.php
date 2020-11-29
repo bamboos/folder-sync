@@ -6,7 +6,7 @@ namespace App\VirtualFileSystem;
 
 interface Persistence
 {
-    public function load(): FileSystem;
+    public function load(): ?Directory;
 
     public function store(FileSystem $fileSystem): void;
 }

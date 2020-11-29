@@ -10,23 +10,28 @@ use App\IO\Input;
 use App\IO\Output;
 use App\View\DirContentsView;
 use App\VirtualFileSystem\FileSystem;
+use App\VirtualFileSystem\Persistence;
 
-class CdCommand extends Command
+class MkDirCommand extends Command
 {
-    protected string $name = 'cd';
+    protected string $name = 'mkdir';
 
     private FileSystem $fileSystem;
 
     private DirContentsView $view;
 
+    private Persistence $persistence;
+
     public function __construct(
         FileSystem $fileSystem,
-        DirContentsView $view
+        DirContentsView $view,
+        Persistence $persistence
     ) {
         $this->fileSystem = $fileSystem;
         $this->view = $view;
 
         parent::__construct();
+        $this->persistence = $persistence;
     }
 
     public function execute(Input $input, Output $output): int
@@ -34,7 +39,8 @@ class CdCommand extends Command
         $dir = $this->getArgument('dir');
 
         if ($dir) {
-            $this->fileSystem->changeDir($dir);
+            $this->fileSystem->mkDir($dir);
+            $this->persistence->store($this->fileSystem);
         }
 
         $this->view->display($this->fileSystem);

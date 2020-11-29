@@ -10,4 +10,9 @@ class TerminalOutput implements Output
     {
         echo $line . "\n";
     }
+
+    public function write(string $line): void
+    {
+        echo $line;
+    }
 }

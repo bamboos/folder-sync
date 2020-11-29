@@ -8,9 +8,16 @@ class FileSystem
 {
     private Directory $active;
 
-    public function __construct()
+    private Directory $root;
+
+    private FileContent $fileContent;
+
+    public function __construct(FileContent $fileContent)
     {
-        $this->active = new Directory('/');
+        $this->root = new Directory('/');
+        $this->active = $this->root;
+        $this->active->setContainedAt($this->active);
+        $this->fileContent = $fileContent;
     }
 
     public function mkDir($name): void
@@ -25,28 +32,120 @@ class FileSystem
         }
     }
 
-    public function addFile(string $name, string $uri): void
+    public function addFile(string $uri): void
     {
-        $this->active->appendFile(new File($name, $uri));
+        if ($this->fileContent->isAccessible($uri)) {
+            print_r(new File($this->fileContent->extractName($uri), $uri));
+            $this->active->appendFile(
+                new File($this->fileContent->extractName($uri), $uri)
+            );
+        }
     }
 
-    public function getSortedContents(): Directory
+    public function getSortedContents(): array
     {
-        return $this->active;
+        $list = $this->active->list();
+
+        usort(
+            $list,
+            fn($f1, $f2) => !$f1->getUri() . $f1->getName() <=>
+                !$f2->getUri() . $f2->getName()
+        );
+
+        return $list;
     }
 
     public function findByName(string $name): ?File
     {
-        $list = $this->active->list();
-        $result = array_search($name, $list);
-        
-        return $result !== false ? $list[$result] : null;
+        return $this->active->list()[$name] ?? null;
     }
 
     public function changeDir(string $name): void
     {
-        if ($dir = $this->findByName($name) && !$dir->getUri()) {
+        if ($name === '..') {
+            $this->active = $this->active->getContainedAt();
+            return;
+        }
+
+        if (($dir = $this->findByName($name)) && !$dir->getUri()) {
             $this->active = $dir;
         }
+    }
+
+    public function getRoot(): Directory
+    {
+        return $this->root;
+    }
+
+    public function setRoot(Directory $root): void
+    {
+        $this->root = $root;
+        $this->active = $this->root;
+    }
+
+    public function getCurrentDir(): Directory
+    {
+        return $this->active;
+    }
+
+    private function getTraversedArray(Directory $directory = null): array
+    {
+        if ($directory === null) {
+            $directory = $this->root;
+            $name = '/';
+        } else {
+            $name = $directory->getName() . '/';
+        }
+
+        foreach ($directory->list() as $file) {
+            $path = $name . $file->getName() . (!$file->getUri() ? '/' : '');
+
+            if (!$file->getUri()) {
+                $traversed = array_merge($traversed ?? [], array_map(
+                    function($file) use ($directory, $name) {
+                        $path = ($name ?? $directory->getName()) . $file->getPath();
+                        $file->setPath($path);
+                        return $file;
+                    },
+                    $this->getTraversedArray($file)
+                ));
+            }
+
+            $file->setPath($path);
+            $traversed[] = $file;
+        }
+
+        return $traversed ?? [];
+    }
+
+    public function traverse(): \Generator
+    {
+        foreach ($this->getTraversedArray() as $file) {
+            if ($file->getUri()) {
+                $file->setContents($this->getFileContents(
+                    $file->getPath()
+                ));
+            }
+
+            yield $file;
+        }
+    }
+
+    public function getFileContents(string $filePath): string
+    {
+        $parts = array_filter(explode('/', $filePath));
+        $this->active = $this->root;
+
+        foreach ($parts as $name) {
+            $file = $this->findByName($name);
+
+            if (!$file->getUri()) {
+                $this->changeDir($name);
+            } else {
+                return $this->fileContent->retrieve($file->getUri());
+            }
+        }
+
+        return '';
     }
 }

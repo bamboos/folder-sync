@@ -11,9 +11,15 @@ abstract class InteractiveCommand extends Command
 
     private array $commands;
 
+    protected string $prompt;
+
     public function execute(Input $input, Output $output): int
     {
         while (true) {
+            if (!empty($this->prompt)) {
+                $output->write($this->prompt);
+            }
+
             $args = array_filter(explode(' ', $input->readLine()));
 
             if (!$args) {

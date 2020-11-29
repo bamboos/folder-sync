@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Service;
+namespace App\Container;
 
 class Container
 {
@@ -26,8 +26,9 @@ class Container
         $this->descs[$service] = [
             'impl' => $impl ?? $service,
             'params' => array_map(
-                fn ($param) => is_string($param) && class_exists($param)
-                    ? fn () => $this->instantiate($param)
+                fn ($param) => is_string($param) &&
+                    (class_exists($param) || interface_exists($param))
+                    ? fn () => $this->get($param)
                     : $param,
                 $params
             )
@@ -41,7 +42,7 @@ class Container
     private function instantiate(string $id)
     {
         if (!isset($this->descs[$id])) {
-            throw new \RuntimeException('No service');
+            throw new \RuntimeException("No service '{$id}'");
         }
 
         if (!class_exists($this->descs[$id]['impl'])) {
