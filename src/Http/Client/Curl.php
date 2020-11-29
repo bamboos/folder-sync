@@ -26,11 +26,7 @@ class Curl implements Client
         ]);
 
         $response = curl_exec($ch);
-        //print_r(curl_getinfo($ch));
         curl_close($ch);
-
-
-        //print_r($response);
 
         return new Response();
     }

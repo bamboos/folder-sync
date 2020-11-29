@@ -1,6 +1,7 @@
 .idea
 .ddev
 vendor
-config/config.php
 data
 !data/.gitkeep
+conf/config.php
+config/config.php
