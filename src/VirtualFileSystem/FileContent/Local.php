@@ -18,7 +18,8 @@ class Local implements FileContent
 
     public function isAccessible(string $uri): bool
     {
-        return $this->fileManager->fileExists($uri);
+        return $this->fileManager->fileExists($uri)
+            && !$this->fileManager->isDirectory($uri);
     }
 
     public function retrieve(string $uri): string

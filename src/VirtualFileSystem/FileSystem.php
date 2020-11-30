@@ -20,9 +20,12 @@ class FileSystem
         $this->fileContent = $fileContent;
     }
 
-    public function mkDir($name): void
+    public function mkDir($name): Directory
     {
-        $this->active->appendFile(new Directory($name));
+        $dir = new Directory($name);
+        $this->active->appendFile($dir);
+
+        return $dir;
     }
 
     public function rmFile($name): void
@@ -35,7 +38,6 @@ class FileSystem
     public function addFile(string $uri): void
     {
         if ($this->fileContent->isAccessible($uri)) {
-            print_r(new File($this->fileContent->extractName($uri), $uri));
             $this->active->appendFile(
                 new File($this->fileContent->extractName($uri), $uri)
             );
@@ -134,10 +136,15 @@ class FileSystem
     public function getFileContents(string $filePath): string
     {
         $parts = array_filter(explode('/', $filePath));
+        $active = $this->active;
         $this->active = $this->root;
 
         foreach ($parts as $name) {
             $file = $this->findByName($name);
+
+            if (!$file) {
+                break;
+            }
 
             if (!$file->getUri()) {
                 $this->changeDir($name);
@@ -145,6 +152,8 @@ class FileSystem
                 return $this->fileContent->retrieve($file->getUri());
             }
         }
+
+        $this->active = $active;
 
         return '';
     }

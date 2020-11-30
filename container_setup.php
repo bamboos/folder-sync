@@ -11,6 +11,8 @@ use App\ConsoleCommand\ManageCommand;
 use App\ConsoleCommand\MkDirCommand;
 use App\ConsoleCommand\RmCommand;
 use App\Http\Client;
+use App\Logger\File;
+use App\Logger\Logger;
 use App\Service\AWS\AWSConnector;
 use App\Service\AWS\Signature;
 use App\Container\Container;
@@ -133,8 +135,18 @@ $container->set(
 );
 
 $container->set(
+    Logger::class,
+    File::class, [
+        'data/log.txt',
+        FileManager::class
+    ]
+);
+
+$container->set(
     Client::class,
-    Client\Curl::class
+    Client\Curl::class, [
+        Logger::class
+    ]
 );
 
 $container->set(
