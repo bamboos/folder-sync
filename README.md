@@ -9,4 +9,4 @@ There are two commands available:
 - Backup - for backing up data
 
 ## Run tests
-`php ./vendor/bin/phpunit`
+` php vendor/bin/codecept run unit`
